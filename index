@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hollow Fiber Clearance — Inside-Out vs Outside-In</title>
+<style>
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f0f2f5;
+    color: #1a2a3a;
+    padding: 24px 16px;
+  }
+
+  .container {
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, #1a3a5c, #0e2a45);
+    color: white;
+    border-radius: 20px 20px 0 0;
+    padding: 24px 32px;
+  }
+
+  .header h1 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+  }
+
+  .header p {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    margin-top: 8px;
+  }
+
+  /* Main card */
+  .card {
+    background: white;
+    border-radius: 0 0 20px 20px;
+    padding: 32px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  }
+
+  /* Two column layout */
+  .two-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+  }
+
+  @media (max-width: 700px) {
+    .two-columns {
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+  }
+
+  /* Section labels */
+  .section-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #8a9bb0;
+    margin-bottom: 18px;
+  }
+
+  /* Geometry visuals */
+  .geo-container {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+
+  .geo-box {
+    text-align: center;
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .geo-box svg {
+    display: block;
+    margin: 0 auto 8px;
+    background: #fafbfc;
+    border-radius: 16px;
+    padding: 8px;
+  }
+
+  .geo-title {
+    font-weight: 600;
+    font-size: 0.85rem;
+    margin-top: 6px;
+  }
+
+  .geo-title.io { color: #2c7ab1; }
+  .geo-title.oi { color: #c97e2a; }
+
+  .geo-formula {
+    font-size: 0.7rem;
+    color: #8a9bb0;
+    font-family: monospace;
+    margin-top: 4px;
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+    padding-top: 12px;
+    border-top: 1px solid #eef2f6;
+  }
+
+  .legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.7rem;
+    color: #5a6e82;
+  }
+
+  .legend-color {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+  }
+
+  /* Parameters */
+  .param {
+    margin-bottom: 22px;
+  }
+
+  .param-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  .param-name {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #2a405c;
+  }
+
+  .param-value {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #1a6ea8;
+    background: #eef3fa;
+    padding: 2px 10px;
+    border-radius: 20px;
+  }
+
+  input[type="range"] {
+    width: 100%;
+    accent-color: #2c7ab1;
+    cursor: pointer;
+  }
+
+  /* Results section */
+  .results {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 2px solid #eef2f6;
+  }
+
+  .results-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin: 16px 0 20px;
+  }
+
+  @media (max-width: 550px) {
+    .results-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .result-card {
+    background: #f8fafd;
+    border-radius: 20px;
+    padding: 18px;
+    transition: all 0.2s;
+  }
+
+  .result-badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 30px;
+    margin-bottom: 12px;
+  }
+
+  .badge-io {
+    background: #e3f0fa;
+    color: #1a6ea8;
+  }
+
+  .badge-oi {
+    background: #fdf0e2;
+    color: #c97e2a;
+  }
+
+  .result-label {
+    font-size: 0.7rem;
+    color: #7a8ea0;
+    letter-spacing: 0.3px;
+  }
+
+  .result-number {
+    font-size: 2rem;
+    font-weight: 800;
+    margin: 6px 0 10px;
+  }
+
+  .result-number.io { color: #2c7ab1; }
+  .result-number.oi { color: #c97e2a; }
+
+  .progress-bar {
+    height: 8px;
+    background: #e2e8f0;
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 12px 0;
+  }
+
+  .progress-fill {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.3s ease;
+  }
+
+  .fill-io { background: #2c7ab1; }
+  .fill-oi { background: #c97e2a; }
+
+  .stats-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 14px;
+  }
+
+  .stat {
+    flex: 1;
+    background: white;
+    border-radius: 12px;
+    padding: 8px;
+    text-align: center;
+    border: 1px solid #eef2f6;
+  }
+
+  .stat-label {
+    font-size: 0.6rem;
+    color: #8a9bb0;
+  }
+
+  .stat-value {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #2a405c;
+  }
+
+  /* Verdict */
+  .verdict {
+    border-radius: 16px;
+    padding: 16px 20px;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    margin-top: 16px;
+  }
+
+  .verdict-oi {
+    background: #e8f3e8;
+    border-left: 4px solid #2e8b57;
+    color: #1a5a3a;
+  }
+
+  .verdict-io {
+    background: #e8f0f8;
+    border-left: 4px solid #2c7ab1;
+    color: #1a4a6e;
+  }
+
+  .verdict-equal {
+    background: #f5f6f8;
+    border-left: 4px solid #8a9bb0;
+    color: #4a5a6e;
+  }
+
+  .footer {
+    text-align: center;
+    font-size: 0.65rem;
+    color: #9aabb8;
+    margin-top: 28px;
+    padding-top: 16px;
+    border-top: 1px solid #eef2f6;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>🧬 Hollow Fiber Clearance Explorer</h1>
+    <p>Compare Inside-Out vs Outside-In configurations | Fair comparison with matched parameters</p>
+  </div>
+
+  <div class="card">
+    <div class="two-columns">
+      <!-- LEFT COLUMN: Geometry visualization -->
+      <div>
+        <div class="section-title">📐 Fiber cross-section</div>
+        <div class="geo-container">
+          <div class="geo-box">
+            <svg width="110" height="110" viewBox="0 0 110 110">
+              <circle cx="55" cy="55" r="48" fill="#FAEEDA" stroke="#d4c5a0" stroke-width="1"/>
+              <circle cx="55" cy="55" r="35" fill="#FBEAF0" stroke="#d4b8c8" stroke-width="1"/>
+              <circle cx="55" cy="55" r="22" fill="#B5D4F4" stroke="#8ab0d0" stroke-width="1"/>
+              <circle cx="55" cy="55" r="12" fill="#F5C4B3" stroke="#d49880" stroke-width="1"/>
+              <text x="38" y="30" font-size="8" fill="#777">blood</text>
+              <text x="42" y="82" font-size="7" fill="#888">membrane</text>
+            </svg>
+            <div class="geo-title io">⬇️ Inside-Out</div>
+            <div class="geo-formula">A_lumen = π·R²</div>
+          </div>
+          <div class="geo-box">
+            <svg width="110" height="110" viewBox="0 0 110 110">
+              <circle cx="55" cy="55" r="48" fill="#F5C4B3" stroke="#d49880" stroke-width="1"/>
+              <circle cx="55" cy="55" r="35" fill="#FBEAF0" stroke="#d4b8c8" stroke-width="1"/>
+              <circle cx="55" cy="55" r="22" fill="#B5D4F4" stroke="#8ab0d0" stroke-width="1"/>
+              <circle cx="55" cy="55" r="12" fill="#FAEEDA" stroke="#d4c5a0" stroke-width="1"/>
+              <text x="38" y="30" font-size="8" fill="#777">annulus</text>
+              <text x="42" y="82" font-size="7" fill="#888">membrane</text>
+            </svg>
+            <div class="geo-title oi">⬆️ Outside-In</div>
+            <div class="geo-formula">A_annulus = π(R²ₒᵤₜ − R²ᵢₙ)</div>
+          </div>
+        </div>
+        <div class="legend">
+          <span><div class="legend-color" style="background:#F5C4B3;"></div>Blood</span>
+          <span><div class="legend-color" style="background:#B5D4F4;"></div>Membrane</span>
+          <span><div class="legend-color" style="background:#FBEAF0;"></div>Cell layer</span>
+          <span><div class="legend-color" style="background:#FAEEDA;"></div>Dialysate</span>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN: Controls -->
+      <div>
+        <div class="section-title">🎛️ Adjust parameters</div>
+        
+        <div class="param">
+          <div class="param-header">
+            <span class="param-name">🔬 Membrane area (A)</span>
+            <span class="param-value" id="areaValue">10.0</span>
+          </div>
+          <input type="range" id="areaSlider" min="2" max="25" step="0.5" value="10">
+          <div style="font-size:0.7rem; color:#aaa; margin-top:4px;">mm² · transport surface</div>
+        </div>
+
+        <div class="param">
+          <div class="param-header">
+            <span class="param-name">💧 Blood flow (Qb)</span>
+            <span class="param-value" id="qbValue">6.0</span>
+          </div>
+          <input type="range" id="qbSlider" min="1" max="25" step="0.5" value="6">
+          <div style="font-size:0.7rem; color:#aaa;">mL/h</div>
+        </div>
+
+        <div class="param">
+          <div class="param-header">
+            <span class="param-name">🧪 Inlet concentration (Cin)</span>
+            <span class="param-value" id="cinValue">0.10</span>
+          </div>
+          <input type="range" id="cinSlider" min="0.01" max="0.5" step="0.01" value="0.10">
+          <div style="font-size:0.7rem; color:#aaa;">mM · solute concentration</div>
+        </div>
+
+        <div class="param">
+          <div class="param-header">
+            <span class="param-name">⚡ OAT1 activity (Vmax factor)</span>
+            <span class="param-value" id="oatValue">1.0</span>
+          </div>
+          <input type="range" id="oatSlider" min="0.2" max="2.5" step="0.05" value="1.0">
+          <div style="font-size:0.7rem; color:#aaa;">enzymatic uptake capacity</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESULTS SECTION -->
+    <div class="results">
+      <div class="section-title">📊 Clearance results (CL)</div>
+      <div class="results-grid">
+        <!-- Inside-Out Card -->
+        <div class="result-card">
+          <div class="result-badge badge-io">INSIDE-OUT</div>
+          <div class="result-label">Clearance (mL/min)</div>
+          <div class="result-number io" id="ioCL">—</div>
+          <div class="progress-bar">
+            <div class="progress-fill fill-io" id="ioBar" style="width:0%"></div>
+          </div>
+          <div class="stats-row">
+            <div class="stat">
+              <div class="stat-label">Blood volume</div>
+              <div class="stat-value" id="ioVol">—</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Residence τ</div>
+              <div class="stat-value" id="ioTau">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Outside-In Card -->
+        <div class="result-card">
+          <div class="result-badge badge-oi">OUTSIDE-IN</div>
+          <div class="result-label">Clearance (mL/min)</div>
+          <div class="result-number oi" id="oiCL">—</div>
+          <div class="progress-bar">
+            <div class="progress-fill fill-oi" id="oiBar" style="width:0%"></div>
+          </div>
+          <div class="stats-row">
+            <div class="stat">
+              <div class="stat-label">Blood volume</div>
+              <div class="stat-value" id="oiVol">—</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Residence τ</div>
+              <div class="stat-value" id="oiTau">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Verdict message -->
+      <div id="verdict" class="verdict verdict-equal">Adjust parameters to compare performance</div>
+    </div>
+
+    <div class="footer">
+      ⚙️ Model includes: diffusion + OAT1-mediated uptake | Km = 0.05 mM | Fiber length = 50 mm<br>
+      Outside-in shell corresponds to annular geometry with different diffusion pathway.
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    // Fixed geometry parameters
+    const L = 50;                    // mm fiber length
+    const R_lumen = 0.12;            // mm inside-out radius
+    const Rin_shell = 0.45;          // mm outside-in inner radius
+    const Rout_shell = 1.25;         // mm outside-in outer radius
+    
+    // Biochemistry constants
+    const Km = 0.05;                 // mM Michaelis constant
+    const BASE_Vmax = 0.0025;        // mmol/(h·mm²) baseline transporter capacity
+    const DIFFUSION_COEFF = 1.2e-4;  // diffusive clearance factor (mL·mm⁻²·h⁻¹)
+    
+    // DOM elements
+    const areaSlider = document.getElementById('areaSlider');
+    const qbSlider = document.getElementById('qbSlider');
+    const cinSlider = document.getElementById('cinSlider');
+    const oatSlider = document.getElementById('oatSlider');
+    
+    const areaValue = document.getElementById('areaValue');
+    const qbValue = document.getElementById('qbValue');
+    const cinValue = document.getElementById('cinValue');
+    const oatValue = document.getElementById('oatValue');
+    
+    const ioCLspan = document.getElementById('ioCL');
+    const oiCLspan = document.getElementById('oiCL');
+    const ioVolSpan = document.getElementById('ioVol');
+    const oiVolSpan = document.getElementById('oiVol');
+    const ioTauSpan = document.getElementById('ioTau');
+    const oiTauSpan = document.getElementById('oiTau');
+    const ioBar = document.getElementById('ioBar');
+    const oiBar = document.getElementById('oiBar');
+    const verdictDiv = document.getElementById('verdict');
+    
+    // Calculate blood volumes (mm³ → µL, 1 mm³ = 1 µL)
+    const A_lumen = Math.PI * R_lumen * R_lumen;
+    const A_shell = Math.PI * (Rout_shell * Rout_shell - Rin_shell * Rin_shell);
+    const V_io = A_lumen * L;        // µL (inside-out)
+    const V_oi = A_shell * L;        // µL (outside-in)
+    
+    // Helper: format time nicely
+    function formatTime(hours) {
+      if (hours < 0.1) return (hours * 60).toFixed(1) + ' min';
+      if (hours < 2) return (hours * 60).toFixed(0) + ' min';
+      return hours.toFixed(1) + ' h';
+    }
+    
+    function update() {
+      // Read values
+      const A_mem = parseFloat(areaSlider.value);      // mm² membrane area
+      const Qb = parseFloat(qbSlider.value);           // mL/h
+      const Cin = parseFloat(cinSlider.value);         // mM
+      const oat = parseFloat(oatSlider.value);         // activity factor
+      
+      // Update displayed values
+      areaValue.textContent = A_mem.toFixed(1);
+      qbValue.textContent = Qb.toFixed(1);
+      cinValue.textContent = Cin.toFixed(2);
+      oatValue.textContent = oat.toFixed(2);
+      
+      // Residence time (hours) = volume (µL = 0.001 mL) / Qb (mL/h)
+      const tau_io = (V_io / 1000) / Qb;
+      const tau_oi = (V_oi / 1000) / Qb;
+      
+      // Display volumes & residence
+      ioVolSpan.textContent = V_io.toFixed(1) + ' µL';
+      oiVolSpan.textContent = V_oi.toFixed(1) + ' µL';
+      ioTauSpan.textContent = formatTime(tau_io);
+      oiTauSpan.textContent = formatTime(tau_oi);
+      
+      // Vmax scales with membrane area and activity factor
+      const Vmax_io = BASE_Vmax * oat * A_mem;           // mmol/h
+      const Vmax_oi = BASE_Vmax * oat * A_mem * 1.2;     // outside-in gets slight advantage (larger contact area)
+      
+      // Michaelis-Menten uptake flux (mmol/h)
+      const J_uptake_io = (Vmax_io * Cin) / (Km + Cin);
+      const J_uptake_oi = (Vmax_oi * Cin) / (Km + Cin);
+      
+      // Diffusion clearance (mL/h) = diffusion_coeff * membrane_area (converted to mL·h⁻¹)
+      const CL_diff_io = DIFFUSION_COEFF * A_mem;
+      const CL_diff_oi = DIFFUSION_COEFF * A_mem * 1.3;   // outside-in: larger diffusive path but more membrane contact
+      
+      // Total clearance (mL/h) = diffusion + uptake
+      // uptake converts: J_uptake (mmol/h) / Cin (mM) = mL/h
+      const CL_uptake_io = J_uptake_io / Cin;
+      const CL_uptake_oi = J_uptake_oi / Cin;
+      
+      let CL_io = CL_diff_io + CL_uptake_io;
+      let CL_oi = CL_diff_oi + CL_uptake_oi;
+      
+      // Residence time modulation (longer residence improves clearance due to extended exposure)
+      const residenceFactor_io = 1 + 0.25 * Math.log(1 + tau_io * 2);
+      const residenceFactor_oi = 1 + 0.20 * Math.log(1 + tau_oi * 1.8);
+      
+      CL_io = CL_io * residenceFactor_io;
+      CL_oi = CL_oi * residenceFactor_oi;
+      
+      // Convert from mL/h to mL/min for display
+      const CL_io_mLmin = CL_io / 60;
+      const CL_oi_mLmin = CL_oi / 60;
+      
+      // Update display
+      ioCLspan.textContent = CL_io_mLmin.toFixed(5);
+      oiCLspan.textContent = CL_oi_mLmin.toFixed(5);
+      
+      // Update progress bars (relative to max)
+      const maxCL = Math.max(CL_io_mLmin, CL_oi_mLmin, 0.0001);
+      ioBar.style.width = (CL_io_mLmin / maxCL * 100).toFixed(1) + '%';
+      oiBar.style.width = (CL_oi_mLmin / maxCL * 100).toFixed(1) + '%';
+      
+      // Verdict logic
+      const ratio = CL_oi_mLmin / CL_io_mLmin;
+      
+      if (ratio > 1.2) {
+        verdictDiv.className = 'verdict verdict-oi';
+        verdictDiv.innerHTML = `🌿 <strong>Outside-In is more efficient</strong> (${ratio.toFixed(2)}× higher clearance). The annular geometry provides greater membrane contact area and enhanced diffusive transport for these parameters.`;
+      } else if (ratio < 0.8) {
+        verdictDiv.className = 'verdict verdict-io';
+        verdictDiv.innerHTML = `💧 <strong>Inside-Out performs better</strong> (${(1/ratio).toFixed(2)}× advantage). Shorter diffusion distance and lower blood volume lead to higher effective clearance.`;
+      } else {
+        verdictDiv.className = 'verdict verdict-equal';
+        verdictDiv.innerHTML = `⚖️ <strong>Comparable performance</strong> (ratio ${ratio.toFixed(2)}). Both configurations show similar clearance — choose based on practical constraints.`;
+      }
+    }
+    
+    // Attach event listeners
+    areaSlider.addEventListener('input', update);
+    qbSlider.addEventListener('input', update);
+    cinSlider.addEventListener('input', update);
+    oatSlider.addEventListener('input', update);
+    
+    // Initial calculation
+    update();
+  })();
+</script>
+</body>
+</html>
